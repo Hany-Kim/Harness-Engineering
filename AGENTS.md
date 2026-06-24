@@ -40,6 +40,8 @@ public API / destructive commands are always judged conservatively, regardless o
 Every non-trivial task follows this loop. **Do not skip stages.** Each stage has a
 home in the repo so work survives across sessions (filesystem memory, not chat history).
 
+0. **Branch** — Before writing any code, decide the working branch and resolve the Jira
+   ticket. Never work on a protected branch. See "Branching & Jira" below.
 1. **Research** — Read before writing. Map the relevant code, existing patterns, and
    constraints. Output: a short findings note. (`/research`)
 2. **Plan** — Write a plan to `docs/plans/<slug>.md` *before* editing code. Get it
@@ -49,6 +51,29 @@ home in the repo so work survives across sessions (filesystem memory, not chat h
    author does not grade their own work. (`/verify`)
 
 > Rule of thumb: if a change touches more than one file or one layer, it needs a plan.
+
+## 1a. Branching & Jira (Stage 0 — before you write code)
+
+Resolve this *before* implementing. Never commit on a protected branch
+(`main` / `master` / `develop` / `release/*` / `hotfix/*`) — create or switch to a work branch.
+
+1. **Decide the branch:** create a new one, or switch to an existing branch if resuming
+   prior work on the same concern.
+2. **Resolve the Jira ticket — confirm which of three:**
+   - **Reuse** an existing ticket → use its key.
+   - **New** ticket → by default the human creates it and gives the key; on request the
+     agent creates it via the Jira MCP after confirming title/description.
+   - **None** → proceed without a ticket.
+3. **Name the branch (git-flow style):**
+   - With ticket: `<type>/<JIRA-KEY>-<slug>` — e.g. `feature/PROJ-123-login-page`
+   - No ticket:   `<type>/<slug>` — e.g. `feature/login-page`
+   - `<type>` ∈ `feature` | `bugfix` | `hotfix` | `release` | `chore`; `<slug>` is short
+     kebab-case. `<JIRA-KEY>` is `<PROJECT>-<number>` (e.g. `PROJ-123`).
+4. **Base branch:** `feature` / `bugfix` / `chore` branch off `develop`; `hotfix` off
+   `main`; `release` off `develop`. (Adjust to the project's actual branch strategy.)
+
+Mechanical option (recommended): enforce the name with a pre-push hook / CI step against
+`^(feature|bugfix|hotfix|release|chore)/([A-Z][A-Z0-9]+-[0-9]+-)?[a-z0-9._-]+$`.
 
 ## 2. The four pillars (how this harness works)
 
@@ -115,7 +140,8 @@ and the arch/layering check passes.
 - **Don't widen scope.** Out-of-scope issues → note them, don't fix inline.
 - **Ask only when blocked on a real decision.** Otherwise pick the sensible default and
   state it.
-- **Branch, don't push to main** unless told. Conventional-commit messages.
+- **Branch, don't push to main** unless told. Pick the branch and Jira ticket first (§1a).
+  Conventional-commit messages.
 
 ## 6. Stack notes
 
