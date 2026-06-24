@@ -84,6 +84,13 @@ nicely. If you find yourself wanting to break one, stop and open a plan instead.
    its mirror in the **same** change. Drift is caught by `harness/scripts/check-sync.sh`
    (run in CI). Parity map: see `docs/architecture/principles.md`.
 
+**Parity map:** `.claude/agents/*.md` mirrors `.codex/agents/*.toml`;
+`.claude/commands/*.md` mirrors Codex prompts (**확인 필요:** Codex prompt directory is not
+created until confirmed by official docs); `.claude/settings.json` `permissions.ask`
+mirrors `.codex/config.toml` `approval_policy`. Any shared-rule change must update both
+tool-specific mirrors in the **same commit**, and every mirror that can be checked must
+be wired into pre-commit and CI.
+
 ## 4. Mechanical enforcement (run these — they gate every change)
 
 > Replace with this project's real commands. The evaluator (`/verify`) runs all of them.

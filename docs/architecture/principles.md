@@ -70,14 +70,14 @@ safety enforcement use **tool-specific formats**, so they are duplicated and *ca
 | Shared rule          | Claude side                  | Codex side                              | Enforced by |
 | -------------------- | ---------------------------- | --------------------------------------- | ----------- |
 | Sub-agents           | `.claude/agents/*.md`        | `.codex/agents/*.toml`                  | `check-sync.sh` |
-| Loop commands        | `.claude/commands/*.md`      | Codex prompts (TODO — dir unconfirmed)  | TODO |
-| Irreversible-op gate | `settings.json` `ask` list   | `.codex/config.toml` `approval_policy`  | TODO |
+| Loop commands        | `.claude/commands/*.md`      | Codex prompts (확인 필요 — dir unconfirmed) | 확인 필요 |
+| Irreversible-op gate | `settings.json` `ask` list   | `.codex/config.toml` `approval_policy`  | `check-sync.sh` (policy-level) |
 | Contract / principles| `AGENTS.md`                  | `AGENTS.md` (same file)                 | single source |
 | Team convention      | `~/.claude/CLAUDE.md`        | `~/.codex/AGENTS.md` (same symlink)     | single source |
 
 **Mechanical check:** `harness/scripts/check-sync.sh` fails when `.claude/agents/*.md`
 and `.codex/agents/*.toml` diverge in name, description, or instruction body. Wire it
-into pre-commit and CI. Extend it as the TODO mirrors gain Codex-side files.
+into pre-commit and CI. Extend it as the 확인 필요 mirrors gain confirmed Codex-side files.
 
 **Rule of thumb:** prefer putting a rule in `AGENTS.md` (single source) over duplicating
 it into per-tool files. Only duplicate when the format genuinely requires it.

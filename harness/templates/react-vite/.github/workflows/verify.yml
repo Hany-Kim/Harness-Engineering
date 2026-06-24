@@ -1,0 +1,60 @@
+name: verify-react-vite
+
+on:
+  pull_request:
+  push:
+    branches: ["<default-branch>"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # 단일 앱이면 "."로, 폴리글랏 저장소면 "frontend" 같은 모듈 루트로 바꾼다.
+        working-directory: "<module-dir>"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "<pnpm-version>"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "<node-version>"
+          cache: pnpm
+          cache-dependency-path: "<module-dir>/pnpm-lock.yaml"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Claude/Codex parity
+        # WHY: 미러 규칙은 스택과 무관한 저장소 루트 계약이므로 루트에서 검사한다.
+        working-directory: ${{ github.workspace }}
+        run: bash harness/scripts/check-sync.sh
+
+      - name: Format
+        run: |
+          pnpm format
+          git diff --exit-code
+
+      - name: Lint
+        # AGENTS.md: eslint . --max-warnings=0.
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: E2E tests
+        run: pnpm e2e
+
+      - name: Arch/layering
+        # AGENTS.md: eslint-plugin-boundaries is enforced by the lint command.
+        run: pnpm lint

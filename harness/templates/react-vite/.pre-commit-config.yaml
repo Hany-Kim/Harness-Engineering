@@ -1,0 +1,46 @@
+# <module-dir>가 저장소 루트가 아니면 이 파일을 모듈 루트에 두거나 entry에서 해당 경로로
+# 이동하도록 조정한다. WHY: nested AGENTS.md와 같은 기준점에서 스택 명령을 실행해야 한다.
+repos:
+  - repo: local
+    hooks:
+      - id: harness-check-sync
+        name: harness Claude/Codex parity
+        entry: bash harness/scripts/check-sync.sh
+        language: system
+        pass_filenames: false
+
+      - id: react-vite-format
+        name: React/Vite format (prettier via pnpm format)
+        entry: pnpm format
+        language: system
+        pass_filenames: false
+
+      - id: react-vite-lint-boundaries
+        name: React/Vite lint (eslint)
+        entry: pnpm lint
+        language: system
+        pass_filenames: false
+
+      - id: react-vite-typecheck
+        name: React/Vite typecheck (tsc)
+        entry: pnpm typecheck
+        language: system
+        pass_filenames: false
+
+      - id: react-vite-unit
+        name: React/Vite unit tests (vitest)
+        entry: pnpm test
+        language: system
+        pass_filenames: false
+
+      - id: react-vite-e2e
+        name: React/Vite e2e tests (playwright)
+        entry: pnpm e2e
+        language: system
+        pass_filenames: false
+
+      - id: react-vite-layering
+        name: React/Vite layering (eslint-plugin-boundaries)
+        entry: pnpm lint
+        language: system
+        pass_filenames: false

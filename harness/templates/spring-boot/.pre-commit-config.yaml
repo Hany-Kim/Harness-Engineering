@@ -1,0 +1,41 @@
+# <module-dir>가 저장소 루트가 아니면 이 파일을 모듈 루트에 두거나 entry에서 해당 경로로
+# 이동하도록 조정한다. WHY: nested AGENTS.md와 같은 기준점에서 스택 명령을 실행해야 한다.
+repos:
+  - repo: local
+    hooks:
+      - id: harness-check-sync
+        name: harness Claude/Codex parity
+        entry: bash harness/scripts/check-sync.sh
+        language: system
+        pass_filenames: false
+
+      - id: spring-boot-format
+        name: Spring Boot format (Spotless)
+        entry: ./gradlew spotlessApply
+        language: system
+        pass_filenames: false
+
+      - id: spring-boot-check
+        name: Spring Boot lint/type gate (Gradle check)
+        entry: ./gradlew check
+        language: system
+        pass_filenames: false
+
+      - id: spring-boot-unit
+        name: Spring Boot unit tests
+        entry: ./gradlew test
+        language: system
+        pass_filenames: false
+
+      - id: spring-boot-e2e
+        name: Spring Boot e2e tests
+        # 확인 필요: 대상 프로젝트 AGENTS.md §4에 실제 Playwright/RestAssured 명령을 적고 교체한다.
+        entry: "<spring-e2e-command-from-project-agents>"
+        language: system
+        pass_filenames: false
+
+      - id: spring-boot-arch
+        name: Spring Boot ArchUnit layering tests
+        entry: ./gradlew test
+        language: system
+        pass_filenames: false

@@ -1,0 +1,55 @@
+name: verify-fastapi
+
+on:
+  pull_request:
+  push:
+    branches: ["<default-branch>"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # 단일 앱이면 "."로, 폴리글랏 저장소면 "backend" 같은 모듈 루트로 바꾼다.
+        working-directory: "<module-dir>"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "<python-version>"
+          cache: pip
+
+      - name: Install dependencies
+        run: "<python-install-command>"
+
+      - name: Claude/Codex parity
+        # WHY: 미러 규칙은 스택과 무관한 저장소 루트 계약이므로 루트에서 검사한다.
+        working-directory: ${{ github.workspace }}
+        run: bash harness/scripts/check-sync.sh
+
+      - name: Format
+        run: |
+          ruff format .
+          git diff --exit-code
+
+      - name: Lint
+        run: |
+          ruff check . --fix
+          git diff --exit-code
+
+      - name: Typecheck
+        run: mypy app
+
+      - name: Unit and integration tests
+        run: pytest -q --cov=app
+
+      - name: E2E tests
+        run: playwright test
+
+      - name: Arch/layering
+        run: lint-imports

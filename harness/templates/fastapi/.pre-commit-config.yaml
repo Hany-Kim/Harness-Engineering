@@ -1,0 +1,46 @@
+# <module-dir>가 저장소 루트가 아니면 이 파일을 모듈 루트에 두거나 entry에서 해당 경로로
+# 이동하도록 조정한다. WHY: nested AGENTS.md와 같은 기준점에서 스택 명령을 실행해야 한다.
+repos:
+  - repo: local
+    hooks:
+      - id: harness-check-sync
+        name: harness Claude/Codex parity
+        entry: bash harness/scripts/check-sync.sh
+        language: system
+        pass_filenames: false
+
+      - id: fastapi-format
+        name: FastAPI format (ruff format)
+        entry: ruff format .
+        language: system
+        pass_filenames: false
+
+      - id: fastapi-lint
+        name: FastAPI lint (ruff check)
+        entry: ruff check . --fix
+        language: system
+        pass_filenames: false
+
+      - id: fastapi-typecheck
+        name: FastAPI typecheck (mypy)
+        entry: mypy app
+        language: system
+        pass_filenames: false
+
+      - id: fastapi-unit
+        name: FastAPI unit/integration tests (pytest)
+        entry: pytest -q --cov=app
+        language: system
+        pass_filenames: false
+
+      - id: fastapi-e2e
+        name: FastAPI e2e tests (playwright)
+        entry: playwright test
+        language: system
+        pass_filenames: false
+
+      - id: fastapi-layering
+        name: FastAPI layering (import-linter)
+        entry: lint-imports
+        language: system
+        pass_filenames: false

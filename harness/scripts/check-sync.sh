@@ -9,8 +9,8 @@
 #   - matching description
 #   - matching instruction body (markdown body == developer_instructions)
 #
-# Other mirrors (.claude/commands <-> Codex prompts, settings.json ask <-> .codex/
-# config.toml) are reported as TODO until those Codex-side files exist.
+# Other mirrors that cannot yet be checked precisely are reported as "확인 필요" so
+# they stay visible without inventing unsupported Codex files.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -21,6 +21,8 @@ import re, sys, pathlib
 root = pathlib.Path(sys.argv[1])
 claude_dir = root / ".claude" / "agents"
 codex_dir = root / ".codex" / "agents"
+claude_settings = root / ".claude" / "settings.json"
+codex_config = root / ".codex" / "config.toml"
 
 def norm(s: str) -> str:
     # compare on trimmed content with normalised trailing whitespace per line
@@ -70,6 +72,18 @@ for n in sorted(set(claude) & set(codex)):
     if cb != tb:
         errors.append(f"agent '{n}': instruction body out of sync")
 
+if claude_settings.exists():
+    if not codex_config.exists():
+        errors.append(".claude/settings.json exists but .codex/config.toml is missing")
+    else:
+        config_text = codex_config.read_text()
+        sandbox = re.search(r'^sandbox_mode\s*=\s*"([^"]+)"\s*$', config_text, re.M)
+        policy = re.search(r'^approval_policy\s*=\s*"([^"]+)"\s*$', config_text, re.M)
+        if not sandbox or sandbox.group(1) != "workspace-write":
+            errors.append(".codex/config.toml: sandbox_mode must mirror the safe workspace-write boundary")
+        if not policy or policy.group(1) not in {"on-request", "untrusted"}:
+            errors.append(".codex/config.toml: approval_policy must be conservative (on-request or untrusted)")
+
 if not claude and not codex:
     print("parity: no agents found to compare")
 
@@ -81,9 +95,9 @@ if errors:
 
 print(f"parity OK: {len(set(claude) & set(codex))} agent mirror(s) in sync")
 
-# Informational: other mirrors not yet checkable
-if not (root / ".codex" / "config.toml").exists():
-    print("note: .codex/config.toml not present yet — settings.json 'ask' <-> approval_policy parity not checked (TODO)")
-if not (root / ".codex" / "prompts").exists():
-    print("note: no Codex prompts dir — .claude/commands <-> Codex prompts parity not checked (TODO)")
+# Informational: other mirrors not yet checkable.
+if claude_settings.exists() and codex_config.exists():
+    print("확인 필요: settings.json permissions.ask <-> .codex/config.toml approval_policy is checked only at policy level")
+if (root / ".claude" / "commands").exists() and not (root / ".codex" / "prompts").exists():
+    print("확인 필요: .claude/commands/*.md <-> Codex prompts mirror is not checked; Codex prompt directory is unconfirmed")
 PY

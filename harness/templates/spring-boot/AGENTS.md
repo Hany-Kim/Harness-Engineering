@@ -1,5 +1,8 @@
 # Stack: Spring Boot (MyBatis / JPA) + Java
 
+> Template note: copy this file to a module root as a nested `AGENTS.md` when this stack
+> lives under a polyglot repository.
+
 Inline the relevant parts of this into the project's root `AGENTS.md` §6.
 
 ## Layout & layering
