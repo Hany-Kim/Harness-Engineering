@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment_safety": "The 'ask' list mechanically enforces team-convention §2.2 (irreversible operations require confirmation). Bash matchers are prefix patterns, so they are best-effort, not a sandbox — they catch the common command forms. Codex does not read this file; keep the same list in its config/approval policy if you rely on it there.",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git branch:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run test:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm:*)",
+      "Bash(ruff:*)",
+      "Bash(mypy:*)",
+      "Bash(pytest:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(./mvnw test:*)"
+    ],
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git rebase:*)",
+      "Bash(git clean:*)",
+      "Bash(git checkout .:*)",
+      "Bash(git restore:*)",
+      "Bash(git branch -D:*)",
+      "Bash(git stash drop:*)",
+      "Bash(git stash clear:*)",
+      "Bash(git filter-branch:*)",
+      "Bash(git filter-repo:*)",
+      "Bash(git reflog expire:*)",
+      "Bash(git gc:*)",
+      "Bash(git update-ref -d:*)",
+      "Bash(git worktree remove:*)",
+      "Bash(git submodule deinit:*)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)",
+      "Bash(find:* -delete)",
+      "Bash(find:* -exec rm:*)",
+      "Bash(xargs rm:*)",
+      "Bash(truncate:*)",
+      "Bash(chmod -R:*)",
+      "Bash(chown -R:*)",
+      "Bash(dd:*)",
+      "Bash(docker system prune:*)",
+      "Bash(kubectl delete:*)",
+      "Bash(./gradlew flywayClean:*)",
+      "Bash(flyway clean:*)",
+      "Bash(prisma migrate reset:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)"
+    ]
+  },
+  "_comment_hooks": "Hooks are how you enforce constraints mechanically. The example below runs prettier on edited TS/JS files. Uncomment and adapt per project; add a PostToolUse arch-lint to fail fast on layering violations.",
+  "_example_hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$CLAUDE_FILE_PATH\"; case \"$f\" in *.ts|*.tsx|*.js|*.jsx) npx prettier --write \"$f\" >/dev/null 2>&1 ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}
