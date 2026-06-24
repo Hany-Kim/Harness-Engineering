@@ -58,6 +58,30 @@ If the linter can't yet express a rule, the rule does not exist. Add the linter 
    produces a doc a human can skim; execution is small commits; verification is done by
    a *different* agent. Don't collapse the stages.
 
+## Tool parity (Claude ↔ Codex)
+
+The harness drives two agents. `AGENTS.md` and the team global convention are **single
+files** (Codex reads `AGENTS.md` natively; `CLAUDE.md` `@import`s it; the global file is
+one symlinked source), so they can't drift. But agent specialization, loop commands, and
+safety enforcement use **tool-specific formats**, so they are duplicated and *can* drift.
+
+**Parity map — change one side, change its mirror in the same commit:**
+
+| Shared rule          | Claude side                  | Codex side                              | Enforced by |
+| -------------------- | ---------------------------- | --------------------------------------- | ----------- |
+| Sub-agents           | `.claude/agents/*.md`        | `.codex/agents/*.toml`                  | `check-sync.sh` |
+| Loop commands        | `.claude/commands/*.md`      | Codex prompts (TODO — dir unconfirmed)  | TODO |
+| Irreversible-op gate | `settings.json` `ask` list   | `.codex/config.toml` `approval_policy`  | TODO |
+| Contract / principles| `AGENTS.md`                  | `AGENTS.md` (same file)                 | single source |
+| Team convention      | `~/.claude/CLAUDE.md`        | `~/.codex/AGENTS.md` (same symlink)     | single source |
+
+**Mechanical check:** `harness/scripts/check-sync.sh` fails when `.claude/agents/*.md`
+and `.codex/agents/*.toml` diverge in name, description, or instruction body. Wire it
+into pre-commit and CI. Extend it as the TODO mirrors gain Codex-side files.
+
+**Rule of thumb:** prefer putting a rule in `AGENTS.md` (single source) over duplicating
+it into per-tool files. Only duplicate when the format genuinely requires it.
+
 ## Tech-debt hygiene (background sweeps)
 
 Run `/harden` (or a scheduled Codex/Claude task) periodically to:

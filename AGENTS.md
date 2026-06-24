@@ -79,6 +79,10 @@ nicely. If you find yourself wanting to break one, stop and open a plan instead.
    evaluator confirms it.
 7. **Two-strike rule.** If an automated fix fails twice on the same problem, stop and
    escalate to a human. Never loop forever.
+8. **Tool parity (Claude ↔ Codex).** Shared rules are duplicated across `.claude/*` and
+   `.codex/*` because the tools use different formats. When you change one side, update
+   its mirror in the **same** change. Drift is caught by `harness/scripts/check-sync.sh`
+   (run in CI). Parity map: see `docs/architecture/principles.md`.
 
 ## 4. Mechanical enforcement (run these — they gate every change)
 

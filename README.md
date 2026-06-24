@@ -55,6 +55,7 @@ memory/README.md           # 세션을 넘어 남기는 영속 메모리
 harness/
   templates/               # 스택별 레이어링·린트·검증 규칙 (react-vite / spring-boot / fastapi)
   scripts/init-project.sh  # 새 프로젝트에 하네스 복사
+  scripts/check-sync.sh    # Claude↔Codex 규칙 미러 싱크 검사 (pre-commit/CI용)
 ```
 
 ## Claude Code + Codex를 함께 쓰는 법
