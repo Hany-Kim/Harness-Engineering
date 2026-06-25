@@ -42,4 +42,6 @@ pnpm e2e           # playwright test
 - Zustand stores expose actions, not raw setters; components dispatch actions only.
 - All network calls live in `src/api/`; components never call `fetch` directly.
 - Validate external data at the boundary with zod; downstream code trusts the types.
-- Co-locate a `*.test.tsx` with each non-trivial component; e2e covers each user flow.
+- **Tests (mandatory — AGENTS.md §1b):** co-locate unit tests as `src/**/*.test.{tsx,jsx}`
+  (vitest). New feature → happy path + edge cases + props validation; bug fix → failing
+  reproduction test first; refactor → keep existing tests green. e2e covers each user flow.

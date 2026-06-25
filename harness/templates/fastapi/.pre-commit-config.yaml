@@ -9,6 +9,12 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: harness-check-docs
+        name: harness doc gardening (code↔doc sync)
+        entry: bash harness/scripts/check-docs.sh
+        language: system
+        pass_filenames: false
+
       - id: fastapi-format
         name: FastAPI format (ruff format)
         entry: ruff format .

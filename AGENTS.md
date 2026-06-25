@@ -57,8 +57,8 @@ home in the repo so work survives across sessions (filesystem memory, not chat h
 Resolve this *before* implementing. Never commit on a protected branch
 (`main` / `master` / `develop` / `release/*` / `hotfix/*`) — create or switch to a work branch.
 
-1. **Decide the branch:** create a new one, or switch to an existing branch if resuming
-   prior work on the same concern.
+1. **Decide the branch:** create a new one (as a git worktree for `src/` work — see §1b),
+   or switch to an existing branch if resuming prior work on the same concern.
 2. **Resolve the Jira ticket — confirm which of three:**
    - **Reuse** an existing ticket → use its key.
    - **New** ticket → by default the human creates it and gives the key; on request the
@@ -74,6 +74,28 @@ Resolve this *before* implementing. Never commit on a protected branch
 
 Mechanical option (recommended): enforce the name with a pre-push hook / CI step against
 `^(feature|bugfix|hotfix|release|chore)/([A-Z][A-Z0-9]+-[0-9]+-)?[a-z0-9._-]+$`.
+
+## 1b. Changing `src/` code (feature / bugfix / refactor)
+
+Applies to **every** change under `src/`. Layered on top of the loop (§1) and §1a — do
+not skip a step.
+
+1. **Plan first.** No code without a plan (§1.2): goal, approach, step-by-step plan,
+   done-criteria. Clarify ambiguity with the human *immediately* — don't guess past it.
+2. **Work in a worktree.** Create a git worktree for the branch and `cd` into it; never
+   edit `src/` directly on the default branch (`<default-branch>`). Before writing, read
+   in order: `AGENTS.md` → `ARCHITECTURE.md` → the related detail docs.
+3. **Tests are mandatory — never skipped.** Ship a unit test with the change:
+   - **New feature:** happy path + edge cases + (UI) props validation.
+   - **Bug fix:** a reproduction test that fails before the fix and passes after.
+   - **Refactor:** existing tests stay green (behaviour preserved); add characterization
+     tests first where coverage is missing.
+   Per stack: React `src/**/*.test.{tsx,jsx}` (vitest); Spring Boot JUnit under
+   `src/test/java`; FastAPI pytest. A failing unit test **blocks the commit** (pre-commit hook).
+4. **Verify before commit.** The §4 gate must pass — unit tests, lint, build,
+   architecture/layering, doc gardening (code↔doc sync), and parity. No green gate, no commit.
+5. **Commit → merge → done.** Conventional commits. **Before merging, confirm with the
+   human who the approver is.** Mark the task done only after the merge.
 
 ## 2. The four pillars (how this harness works)
 
@@ -126,11 +148,14 @@ be wired into pre-commit and CI.
 # typecheck     <tsc --noEmit / mypy>
 # unit test     <vitest / junit / pytest>
 # e2e test      <playwright>
+# build         <vite build / gradle build / ...>
 # arch test     <dependency-direction / layering check>
+# doc gardening harness/scripts/check-docs.sh   (code↔doc sync: referenced paths exist)
+# parity        harness/scripts/check-sync.sh   (Claude ↔ Codex mirrors in sync)
 ```
 
 A change is **not done** until: format clean, lint clean, types clean, unit + e2e green,
-and the arch/layering check passes.
+build passes, and the arch/layering, doc-gardening, and parity checks pass.
 
 ## 5. Working agreements
 

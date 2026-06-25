@@ -43,4 +43,7 @@ playwright test                # e2e (if the app serves UI/flows)
 - One `AsyncSession` per request via dependency injection; repositories take the session.
 - Redis access is wrapped in a repository, namespaced by tenant/key-prefix.
 - Integration tests run against Postgres+Redis via Testcontainers or docker-compose.
+- **Tests (mandatory — AGENTS.md §1b):** pytest (`tests/` or `*_test.py`). New feature →
+  happy path + edge cases; bug fix → failing reproduction test first; refactor → keep
+  existing tests green. A failing test blocks the commit.
 - Alembic migrations, forward-only, human-reviewed.

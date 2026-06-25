@@ -40,6 +40,9 @@ logic in controllers or mappers.
 - Transactions live in the service layer, never the controller.
 - DTOs cross the controller boundary; entities never leak out of the service layer.
 - Repository tests use Testcontainers (Postgres) — not H2 — so behaviour matches prod.
+- **Tests (mandatory — AGENTS.md §1b):** JUnit under `src/test/java`. New feature → happy
+  path + edge cases; bug fix → failing reproduction test first; refactor → keep existing
+  tests green. A failing test blocks the commit.
 
 ## Database migrations (Flyway)
 - All schema changes go through **Flyway**. Migrations are forward-only and human-reviewed.
