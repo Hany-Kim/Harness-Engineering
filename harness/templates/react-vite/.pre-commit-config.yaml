@@ -9,6 +9,12 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: harness-check-docs
+        name: harness doc gardening (code↔doc sync)
+        entry: bash harness/scripts/check-docs.sh
+        language: system
+        pass_filenames: false
+
       - id: react-vite-format
         name: React/Vite format (prettier via pnpm format)
         entry: pnpm format
