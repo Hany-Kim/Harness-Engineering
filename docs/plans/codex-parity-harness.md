@@ -1,4 +1,15 @@
+---
+slug: codex-parity-harness
+status: verified
+branch: none
+ticket: none
+updated: 2026-07-06
+---
+
 # Plan: Codex parity harness
+
+> v1 설계 — 완료·머지됨. 패리티 방식은 v2에서 "생성 기반"으로 대체
+> (docs/plans/harness-v2-redesign.md 참고).
 
 - **Status:** done
 - **Owner / driver:** Codex
