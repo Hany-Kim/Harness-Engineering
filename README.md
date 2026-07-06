@@ -1,113 +1,94 @@
-# 나만의 하네스 엔지니어링 (Harness Engineering)
+# 하네스 엔지니어링 v2 (Harness Engineering)
 
-OpenAI의 [Harness Engineering](https://openai.com/index/harness-engineering/) 전략을
-참고해 만든 **개인용 하네스 스타터킷**입니다. 프로젝트마다 복사해 쓰면서, 개발 업무와
-사이드 프로젝트에서 에이전트(Claude Code 주력 · Codex 보조)가 일관되고 검증 가능하게
-일하도록 만드는 게 목표입니다.
+에이전트(Claude Code 주력 · Codex 보조)가 어느 프로젝트에서든 **일관되고 검증
+가능하게** 일하도록 만드는 설치형 하네스. 이 저장소가 원본(kit)이고, 대상
+프로젝트에는 `scripts/init.sh`로 렌더링해 설치한다.
 
-## 하네스 엔지니어링이란?
+> 핵심 철학: 에이전트가 일 잘하게 만드는 건 더 긴 프롬프트가 아니라 **환경**이다.
+> 규칙은 산문이 아니라 게이트로 강제하고, 작업 상태는 채팅이 아니라 파일에 남긴다.
 
-> "에이전트가 코드를 잘 짜게 만들려고 사람이 직접 코드를 쓰는 게 아니라,
-> 에이전트가 일할 **환경(harness)** 을 설계한다."
+## v2가 v1과 다른 점 (왜 재설계했나)
 
-핵심은 **에이전트의 해법 공간을 좁히는 것**입니다. 자유도를 줄이고 성공 경로를 명확히
-할수록 에이전트의 생산성과 정확도가 올라갑니다. 4가지 기둥:
+v1을 타 프로젝트에 이식하면 에이전트가 맥락을 잃고 절차를 건너뛰었다. 원인과 해법:
 
-1. **컨텍스트 아키텍처** — 저장소가 유일한 진실 공급원. 정보는 계층적으로, 필요할 때만 노출.
-2. **에이전트 전문화** — 범위가 좁고 도구가 제한된 전용 에이전트(생성자/평가자 분리).
-3. **영속 메모리** — 대화 기록이 아니라 파일시스템에 사실을 남긴다.
-4. **구조화된 실행 루프** — research → plan → execute → verify (검증은 *다른* 에이전트가).
+| v1의 문제 | v2의 해법 |
+| --- | --- |
+| 이식 스크립트가 Codex 설정·게이트를 누락(반쪽 복사) | `init.sh`가 전체를 렌더링 복사 + 마지막에 `doctor.sh` 통과해야 설치 완료 |
+| 계약에 자리표시자·깨진 링크 잔존 → 에이전트가 문서를 불신 | 렌더링으로 자리표시자 0개 보장, doctor·check-docs가 기계 검증 |
+| 절차 강제가 산문뿐(훅은 주석 상태) | `gate.sh`(pre-commit/CI)가 커밋을 차단 — Codex도 우회 불가 |
+| 루프 상태가 파일에 없음 → 세션 바뀌면 맥락 소실 | 계획 frontmatter 상태 기계 + SessionStart 훅이 매 세션 주입 |
+| Claude↔Codex 수동 미러링(드리프트) | `kit/` 단일 소스에서 **생성** — 드리프트 클래스 소멸 |
 
-여기에 **기계적 제약 강제**(규칙은 글이 아니라 linter/CI/테스트로)와
-**골든 원칙 + 백그라운드 정리 작업**이 더해집니다.
+## 4가지 기둥 + 컨벤션 사다리
 
-## 규칙 계층 (Precedence)
+1. **컨텍스트 아키텍처** — 계약(AGENTS.md)은 짧게, 상세는 docs/에 계층화.
+2. **에이전트 전문화** — planner / implementer / evaluator / refactorer (검증은 항상 다른 에이전트).
+3. **영속 메모리** — 계획·결정·메모는 파일시스템에. 채팅 기록은 소모품.
+4. **구조화된 실행 루프** — research → plan → execute → verify, 단계마다 게이트.
 
-규칙은 계층으로 쌓이고, 충돌 시 위가 이긴다.
-
-1. 현재 대화의 명시적 요청
-2. 프로젝트 `AGENTS.md` / `CLAUDE.md` 및 프로젝트 기존 코드 컨벤션
-3. **팀 전역 컨벤션** — `team/CLAUDE.global.md` (Claude Code는 `~/.claude/CLAUDE.md`,
-   Codex는 `~/.codex/AGENTS.md` 에 설치). 팀 공통 작업 스타일·안전·네이밍·언어별 규칙
-4. 일반 프레임워크 권장
-
-예외: 보안 / 인증 / 결제 / DB / 배포 / CI-CD / secret / 운영 데이터 / public API /
-파괴적 명령은 계층과 무관하게 항상 보수적으로 판단한다.
+코드 일관성은 **컨벤션 사다리**로: ① 포매터·린터(기계) → ② 표본 코드(exemplar 모방)
+→ ③ 작업 유형별 Skill(온디맨드) → ④ 상시 산문(최소). 위에서 해결되는 규칙을
+아래에 두지 않는다.
 
 ## 구조
 
 ```
-team/CLAUDE.global.md      # 팀 전역 컨벤션 원본(버전 관리) — ~/.claude/CLAUDE.md 로 설치
-AGENTS.md                  # 하네스 계약 — 유일한 진실 공급원 (Codex + Claude 공용)
-CLAUDE.md                  #   AGENTS.md 를 @import 하는 얇은 포인터
-docs/
-  architecture/
-    principles.md          # 골든 원칙 + 레이어링(의존성 방향) — 기계적 강제 포함
-    MAP.md                 # 저장소 지도(목차)
-  plans/TEMPLATE.md        # research→plan 산출물 (작업당 1개, 머지 후에도 보존)
-  specs/TEMPLATE.md        # 큰 기능 설계서
-  decisions/TEMPLATE.md    # ADR — 왜 이렇게 결정했는가
-memory/README.md           # 세션을 넘어 남기는 영속 메모리
-.claude/
-  settings.json            # 권한 + 훅(기계적 강제) 예시
-  agents/                  # 전문 서브에이전트: planner / implementer / evaluator / refactorer
-  commands/                # 루프 슬래시 커맨드: /research /plan /execute /verify /harden
-harness/
-  templates/               # 스택별 레이어링·린트·검증 규칙 (react-vite / spring-boot / fastapi)
-  scripts/init-project.sh  # 새 프로젝트에 하네스 복사
-  scripts/check-sync.sh    # Claude↔Codex 규칙 미러 싱크 검사 (pre-commit/CI용)
+kit/                       # ★ 단일 소스 — 모든 수정은 여기서
+  agents/ commands/ skills/ hooks/ gates/ settings/
+  contract/                # 대상 프로젝트용 AGENTS.md/CLAUDE.md 템플릿
+  stacks/{react-vite,spring-boot,fastapi}/
+                           # gate.env(검증 명령) · stack.md(레이어링/린터 설정)
+                           # · skills/(스택 Skill) · exemplar/(표본 슬라이스) · CI
+scripts/
+  render.sh                # kit → .claude/.codex/harness/docs/conventions 생성
+  init.sh                  # 대상 프로젝트 설치 (렌더링 복사 + 버전 스탬프 + doctor)
+  upgrade.sh               # 설치본 갱신 (manifest 해시 기반, 로컬 수정 보존)
+.claude/ .codex/ harness/ docs/conventions/   # 렌더 산출물 — 직접 수정 금지
+docs/  architecture/(원칙·지도) plans/(작업 상태 기계) specs/ decisions/
+team/CLAUDE.global.md      # 팀 전역 컨벤션 원본
+VERSION                    # 하네스 버전 — 설치본 .harness/manifest에 스탬프
 ```
 
-## Claude Code + Codex를 함께 쓰는 법
+## 새 프로젝트에 설치
 
-- **`AGENTS.md` 가 원본**입니다. Codex가 기본으로 읽고, `CLAUDE.md` 는 `@AGENTS.md` 로
-  이를 가져오므로 **두 도구가 같은 계약을 봅니다.** 규칙은 항상 `AGENTS.md` 에만 적습니다.
-- Claude Code 전용 기능(서브에이전트, 슬래시 커맨드, 훅)은 `.claude/` 와 `CLAUDE.md` 의
-  전용 섹션에 둡니다 — Codex는 이를 무시합니다.
+```bash
+scripts/init.sh ../my-app fastapi   my-app develop
+#               <target>  <stack>   [이름]  [기본 브랜치]
+```
 
-## 실행 루프 (매 작업마다)
+init이 하는 일: 계약 렌더링(자리표시자 치환) → `.claude/ .codex/ harness/ docs/`
+전체 복사 → 스택 팩(gate.env·표본·Skill·CI) 설치 → git pre-commit에 게이트 배선 →
+`.harness/manifest`(버전+해시) 기록 → **doctor 통과 확인**. 실패하면 설치 미완료다.
 
-| 단계 | 커맨드 | 담당 | 산출물 |
-| --- | --- | --- | --- |
-| 1. 조사 | `/research` | planner(읽기 전용) | 발견 사항 노트 |
-| 2. 계획 | `/plan` | planner | `docs/plans/<slug>.md` |
-| 3. 실행 | `/execute` | implementer | 작은 커밋들 + 테스트 |
-| 4. 검증 | `/verify` | evaluator(*다른* 에이전트) | PASS/FAIL + 증거 |
+이후 하네스 개선분 반영:
 
-> 한 파일·한 레이어를 넘는 변경이면 반드시 계획부터. 검증은 작성자가 셀프로 하지 않습니다.
-> 추가로 `/harden` 으로 기술부채를 주기적으로 청소합니다.
+```bash
+scripts/upgrade.sh ../my-app   # 로컬에서 수정 안 한 파일만 자동 갱신,
+                               # 수정한 파일은 <file>.harness-new 로 보고
+```
+
+## 설치된 프로젝트에서의 루프
+
+| 단계 | 커맨드 | 강제 장치 |
+| --- | --- | --- |
+| 0. 브랜치/티켓 | — | 게이트가 보호 브랜치·브랜치명 규칙 차단 |
+| 1. 조사 | `/research` | planner(읽기 전용) |
+| 2. 계획 | `/plan` | `docs/plans/<slug>.md` — frontmatter `draft` → 사람 승인 → `approved` |
+| 3. 실행 | `/execute` | **approved 계획 없으면 src/ 커밋이 게이트에서 거부됨** |
+| 4. 검증 | `/verify` | evaluator(별도 에이전트)가 `gate.sh --ci` + 계획 검증 → `verified` |
+
+세션이 바뀌어도 SessionStart 훅이 "진행 중 작업: X (executing, branch: …)"를
+주입한다 — 맥락은 저장소가 기억한다.
 
 ## 팀 전역 컨벤션 설치 (1회)
 
-`team/CLAUDE.global.md` 를 두 에이전트의 전역 설정에 연결한다. 저장소를 단일 원본으로
-유지하려면 심볼릭 링크를, 이동 가능성이 있으면 복사를 쓴다.
-
 ```bash
-# 심볼릭 링크 (저장소 수정이 전역에 자동 반영)
-ln -s "$PWD/team/CLAUDE.global.md" ~/.claude/CLAUDE.md      # Claude Code 전역
-ln -s "$PWD/team/CLAUDE.global.md" ~/.codex/AGENTS.md       # Codex 전역
+ln -s "$PWD/team/CLAUDE.global.md" ~/.claude/CLAUDE.md   # Claude Code 전역
+ln -s "$PWD/team/CLAUDE.global.md" ~/.codex/AGENTS.md    # Codex 전역
 ```
 
-안전 규칙(§2.2 되돌릴 수 없는 작업)은 `.claude/settings.json` 의 `ask` 목록으로
-**기계적으로 강제**된다. Codex는 이 파일을 읽지 않으므로, Codex의 승인 정책에도 동일
-수준을 설정해야 한다.
+## 이 저장소에서 하네스를 고칠 때
 
-## 새 프로젝트에 적용
-
-```bash
-harness/scripts/init-project.sh ../my-app fastapi
-#   <target-dir>            <stack: react-vite | spring-boot | fastapi>
-```
-
-그다음 대상 프로젝트에서:
-1. `AGENTS.md` 의 `<…>` 자리표시자(이름, 명령어, 레이아웃)를 채운다.
-2. `docs/architecture/STACK-*.md` 내용을 `AGENTS.md` §6에 합치고 파일은 삭제.
-3. 스택 노트의 **레이어링 린터 + 검증 명령어**를 CI에 연결.
-4. 커밋. 끝.
-
-## 핵심 원칙 (요약)
-
-저장소가 진실 · 의존성은 한 방향(`Types → Config → Repository → Service → Runtime/API → UI`)
-· 코드는 에이전트가 읽을 수 있게 · 작고 되돌릴 수 있는 변경 · 제약은 기계적으로 ·
-테스트가 계약 · 같은 수정 두 번 실패하면 사람에게(two-strike).
-전체는 [`docs/architecture/principles.md`](docs/architecture/principles.md) 참고.
+`kit/`을 고치고 `scripts/render.sh` 실행 — 원본과 산출물을 같은 커밋에.
+게이트가 `render.sh --check`·문서 링크·브랜치 규칙을 커밋마다 검사한다.
+설치본에 영향을 주는 변경은 `VERSION`을 올린다. 상세: [AGENTS.md](AGENTS.md).

@@ -1,0 +1,19 @@
+# 하네스 CI 게이트 — pre-commit과 같은 gate.sh를 실행한다(도구 무관 최종 안전망).
+name: verify
+on:
+  pull_request:
+  push:
+    branches: ["{{DEFAULT_BRANCH}}"]
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # merge-base 계산(계획 선행 검사)에 전체 히스토리 필요
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # 프로젝트 의존성 설치 방식에 맞게 조정할 것 (requirements / poetry / uv)
+      - run: pip install -r requirements-dev.txt
+      - run: harness/gates/gate.sh --ci

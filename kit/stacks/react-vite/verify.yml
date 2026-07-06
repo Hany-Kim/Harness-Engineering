@@ -1,0 +1,19 @@
+# 하네스 CI 게이트 — pre-commit과 같은 gate.sh를 실행한다(도구 무관 최종 안전망).
+name: verify
+on:
+  pull_request:
+  push:
+    branches: ["{{DEFAULT_BRANCH}}"]
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # merge-base 계산(계획 선행 검사)에 전체 히스토리 필요
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: harness/gates/gate.sh --ci

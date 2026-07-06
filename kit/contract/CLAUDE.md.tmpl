@@ -1,0 +1,16 @@
+# CLAUDE.md
+
+이 프로젝트의 계약은 `AGENTS.md` 하나다 — Claude Code와 Codex가 같은 원본을 읽는다.
+
+@AGENTS.md
+
+---
+
+Claude Code 전용 (Codex는 이 섹션을 무시한다):
+
+- 서브에이전트: `.claude/agents/` — planner / implementer / evaluator / refactorer.
+  루프 단계마다 해당 에이전트를 쓴다(한 컨텍스트로 전부 하지 않는다).
+- 루프 커맨드: `/research` `/plan` `/execute` `/verify` `/harden`
+- 컨벤션 Skill: `.claude/skills/` — 작업 유형이 맞으면 자동 로드된다.
+- 훅: `harness/hooks/` — SessionStart가 진행 중 작업을 주입하고, src/ 편집 가드와
+  편집 즉시 포맷이 걸려 있다. 훅이 차단하면 우회하지 말고 안내를 따를 것.
