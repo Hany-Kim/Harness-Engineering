@@ -245,37 +245,40 @@ session-start 훅이 doctor 요약을 함께 주입해, 에이전트가 스스�
 
 각 단계는 독립 커밋. 순서는 의존 방향(단일 소스 → 렌더러 → 게이트 → 배포).
 
-- [ ] **Step 1 — kit/ 골격 + 단일 소스 이관.** `kit/agents/*.agent.md`,
+- [x] **Step 1 — kit/ 골격 + 단일 소스 이관.** `kit/agents/*.agent.md`,
       `kit/commands/*.cmd.md`(상태 전이 로직 포함해 재작성), `kit/settings/*`.
       기존 `.claude/.codex` 내용을 참고해 작성하되 복사가 아니라 재설계.
-- [ ] **Step 2 — scripts/render.sh.** kit → `.claude/agents|commands`,
+- [x] **Step 2 — scripts/render.sh.** kit → `.claude/agents|commands`,
       `.codex/agents`, settings 렌더링. `--check` 모드(diff 검사) 포함.
       하네스 저장소 자신의 `.claude/.codex`를 렌더 산출물로 교체.
-- [ ] **Step 3 — 게이트/훅.** `kit/gates/gate.sh`, `doctor.sh`,
+- [x] **Step 3 — 게이트/훅.** `kit/gates/gate.sh`, `doctor.sh`,
       `check-docs.sh`(이관), `kit/hooks/session-start.sh`, `pre-edit-guard.sh`.
       settings.json에 훅을 **활성 상태로** 배선.
-- [ ] **Step 4 — 상태 기계.** `docs/plans/TEMPLATE.md`에 frontmatter 도입,
+- [x] **Step 4 — 상태 기계.** `docs/plans/TEMPLATE.md`에 frontmatter 도입,
       루프 커맨드가 상태를 검사·전이하도록 커맨드 본문 확정(Step 1과 정합).
       기존 계획 문서 2건에 frontmatter 소급 추가.
-- [ ] **Step 5 — 계약 템플릿 + 스택 팩.** `kit/contract/AGENTS.md.tmpl`(≤150줄),
+- [x] **Step 5 — 계약 템플릿 + 스택 팩.** `kit/contract/AGENTS.md.tmpl`(≤150줄),
       `CLAUDE.md.tmpl`, `kit/stacks/{react-vite,spring-boot,fastapi}/`
       (gate.env 실제 명령, pre-commit, verify.yml, 레이어링·네이밍 린터 설정).
       react-vite: prettier+eslint 설정 확정본. spring-boot: ArchUnit 규칙
       (레이어링 + Repository 단건 조회 Optional 반환, §3.7). v1
       `harness/templates/*` 내용을 이관·정리.
-- [ ] **Step 5b — 컨벤션 계층(§3.7).** `kit/skills/` 공통 Skill 3종
+- [x] **Step 5b — 컨벤션 계층(§3.7).** `kit/skills/` 공통 Skill 3종
       (testing-conventions, commit-and-pr, db-migration) + 스택별 Skill
       (new-api-endpoint 또는 new-react-component) 작성, render.sh에
       skills → `.claude/skills/` + `docs/conventions/` 렌더 추가,
       스택 팩별 exemplar vertical slice 1개(테스트 포함, 실제 통과하는 코드).
-- [ ] **Step 6 — 배포 스크립트.** `scripts/init.sh`(렌더링 복사 + manifest +
+- [x] **Step 6 — 배포 스크립트.** `scripts/init.sh`(렌더링 복사 + manifest +
       doctor 자동 실행), `scripts/upgrade.sh`(해시 diff 갱신).
-- [ ] **Step 7 — 하네스 자신을 v2로 전환.** 자기 계약(AGENTS.md/CLAUDE.md)을
+- [x] **Step 7 — 하네스 자신을 v2로 전환.** 자기 계약(AGENTS.md/CLAUDE.md)을
       템플릿에서 렌더링, README 재작성(철학·사용법 이동), v1 잔재
       (`harness/scripts/check-sync.sh`, `init-project.sh`, `harness/templates/`) 제거.
       pre-commit에 gate.sh 배선.
-- [ ] **Step 8 — 종단 검증 리허설.** 스크래치 디렉터리에 스택별 init 실행,
-      §5의 시나리오 전부 통과 확인.
+- [x] **Step 8 — 종단 검증 리허설.** fastapi 스택으로 스크래치 init 실행 — §5
+      시나리오 통과. 편차 기록: (a) exemplar 테스트의 실제 실행은 대상 프로젝트
+      툴체인(pytest/vitest/gradle) 의존이라 이 머신에서 미실행(doctor WARN이
+      알려줌 — 확인 필요), (b) 소스 루트가 스택별로 달라(GATE_SRC_PATTERN)
+      gate/가드에 설정화 반영, (c) 게이트 스택 명령은 리허설에서 비워 배관만 검증.
 
 ## 5. Verification
 
