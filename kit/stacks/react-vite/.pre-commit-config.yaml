@@ -1,0 +1,11 @@
+# pre-commit 프레임워크를 쓰는 팀용 설정. init.sh는 프레임워크 없이도 동작하는
+# .git/hooks/pre-commit 셸 심을 함께 설치한다 — 어느 쪽이든 gate.sh 하나가 진실이다.
+repos:
+  - repo: local
+    hooks:
+      - id: harness-gate
+        name: harness gate (branch/plan/format/lint/type/test/docs)
+        entry: harness/gates/gate.sh
+        language: system
+        pass_filenames: false
+        always_run: true

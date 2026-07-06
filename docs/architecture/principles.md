@@ -58,29 +58,32 @@ If the linter can't yet express a rule, the rule does not exist. Add the linter 
    produces a doc a human can skim; execution is small commits; verification is done by
    a *different* agent. Don't collapse the stages.
 
-## Tool parity (Claude ↔ Codex)
+## Tool parity (Claude ↔ Codex) — 생성으로 보장한다
 
-The harness drives two agents. `AGENTS.md` and the team global convention are **single
-files** (Codex reads `AGENTS.md` natively; `CLAUDE.md` `@import`s it; the global file is
-one symlinked source), so they can't drift. But agent specialization, loop commands, and
-safety enforcement use **tool-specific formats**, so they are duplicated and *can* drift.
+v2부터 패리티는 "비교 검사"가 아니라 **생성**이다. 단일 소스는 `kit/`이고,
+`scripts/render.sh`가 양쪽 도구의 산출물을 만들며, 게이트의 `render.sh --check`가
+드리프트를 커밋 시점에 차단한다. 손으로 미러를 맞추는 규칙은 존재하지 않는다 —
+산출물을 직접 고치지 말고 kit을 고쳐라.
 
-**Parity map — change one side, change its mirror in the same commit:**
+| 산출물 | 원본 (단일 소스) |
+| --- | --- |
+| `.claude/agents/*.md` + `.codex/agents/*.toml` | `kit/agents/*.agent.md` |
+| `.claude/commands/*.md` | `kit/commands/*.cmd.md` |
+| `.claude/skills/*` + `docs/conventions/*.md` | `kit/skills/*` (+ 스택 팩 `skills/`) |
+| `.claude/settings.json` + `.codex/config.toml` | `kit/settings/*` |
+| `harness/gates/*` + `harness/hooks/*` | `kit/gates/*` + `kit/hooks/*` |
+| 계약 / 원칙 | `AGENTS.md` (Codex가 원생으로 읽고 `CLAUDE.md`가 @import) |
+| 팀 전역 컨벤션 | `team/CLAUDE.global.md` (양쪽 전역 경로에 동일 설치) |
 
-| Shared rule          | Claude side                  | Codex side                              | Enforced by |
-| -------------------- | ---------------------------- | --------------------------------------- | ----------- |
-| Sub-agents           | `.claude/agents/*.md`        | `.codex/agents/*.toml`                  | `check-sync.sh` |
-| Loop commands        | `.claude/commands/*.md`      | Codex prompts (확인 필요 — dir unconfirmed) | 확인 필요 |
-| Irreversible-op gate | `settings.json` `ask` list   | `.codex/config.toml` `approval_policy`  | `check-sync.sh` (policy-level) |
-| Contract / principles| `AGENTS.md`                  | `AGENTS.md` (same file)                 | single source |
-| Team convention      | `~/.claude/CLAUDE.md`        | `~/.codex/AGENTS.md` (same symlink)     | single source |
+Codex에는 슬래시 커맨드·Skill·훅의 대응물이 없다. 그 간극은 두 가지로 메운다:
+(1) 루프와 컨벤션 표를 `AGENTS.md`에 담아 Codex가 절차를 읽게 하고(커맨드의 대체),
+Skill 내용은 `docs/conventions/*.md`로 렌더링해 링크한다. (2) 절차 **강제**는 도구
+무관 계층인 pre-commit/CI의 `harness/gates/gate.sh`가 담당한다 — Codex도 커밋
+시점에는 같은 게이트를 통과해야 한다. (확인 필요: Codex 프롬프트 디렉터리가 공식
+문서로 확인되면 `kit/commands/`에서 해당 포맷도 렌더링하도록 render.sh를 확장.)
 
-**Mechanical check:** `harness/scripts/check-sync.sh` fails when `.claude/agents/*.md`
-and `.codex/agents/*.toml` diverge in name, description, or instruction body. Wire it
-into pre-commit and CI. Extend it as the 확인 필요 mirrors gain confirmed Codex-side files.
-
-**Rule of thumb:** prefer putting a rule in `AGENTS.md` (single source) over duplicating
-it into per-tool files. Only duplicate when the format genuinely requires it.
+**Rule of thumb:** 규칙은 가능하면 `AGENTS.md`(단일 파일)에, 도구별 포맷이 정말
+필요할 때만 `kit/`에 — 그리고 그 경우에도 원본은 하나다.
 
 ## Tech-debt hygiene (background sweeps)
 
