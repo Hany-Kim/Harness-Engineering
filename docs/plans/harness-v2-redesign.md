@@ -268,6 +268,12 @@ session-start 훅이 doctor 요약을 함께 주입해, 에이전트가 스스�
       (new-api-endpoint 또는 new-react-component) 작성, render.sh에
       skills → `.claude/skills/` + `docs/conventions/` 렌더 추가,
       스택 팩별 exemplar vertical slice 1개(테스트 포함, 실제 통과하는 코드).
+- [x] **Step 5c — Flyway 정책 (사후 확정 사항).** 사람 결정(2026-07-07)을 컨벤션에
+      반영: 운영 순차(`outOfOrder=false` 기본값, 명시 강제는 운영 프로파일) /
+      로컬만 out-of-order 허용(비커밋 설정) / 생성 시점 타임스탬프 네이밍 고정 /
+      순서 의존 마이그레이션 금지 + 머지 전 재넘버링(공유 환경 미적용분 한정).
+      반영 위치: kit/skills/db-migration + kit/stacks/spring-boot/stack.md.
+      VERSION 2.1.0.
 - [x] **Step 6 — 배포 스크립트.** `scripts/init.sh`(렌더링 복사 + manifest +
       doctor 자동 실행), `scripts/upgrade.sh`(해시 diff 갱신).
 - [x] **Step 7 — 하네스 자신을 v2로 전환.** 자기 계약(AGENTS.md/CLAUDE.md)을

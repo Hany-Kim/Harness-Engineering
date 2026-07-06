@@ -43,8 +43,36 @@ src/main/java/<pkg>/
 
 - 스키마 변경은 전부 Flyway, forward-only, 사람 리뷰.
 - 파일: `src/main/resources/db/migration/`,
-  네이밍 `V{yyyyMMddHHmmss}__{why_snake_case}.sql` (더블 언더스코어).
+  네이밍 `V{yyyyMMddHHmmss}__{why_snake_case}.sql` (더블 언더스코어, 생성 시점
+  타임스탬프로 고정).
 - 적용된 마이그레이션은 절대 수정하지 않는다 — 새 파일 추가(checksum 불일치 방지).
+
+### out-of-order 정책 — 운영 순차, 로컬 유연
+
+운영·공유 DB는 순차 적용(`outOfOrder=false`, Flyway 기본값)이다. out-of-order를
+켜는 override를 저장소에 커밋하지 않는 것으로 기본값이 강제되며, 순서 어긋남은
+배포/validate 실패로 드러난다. 명시적으로 못박으려면 운영 프로파일에 선언한다:
+
+```yaml
+# application-prod.yaml — 명시 강제(선택): 순서 어긋남은 배포 실패로 드러나야 한다
+spring:
+  flyway:
+    out-of-order: false
+```
+
+로컬은 브랜치 병행 개발 편의로 허용하되, 커밋하지 않는 설정에서만:
+
+```yaml
+# application-local.yaml (gitignored) — 로컬 전용 편의 설정
+spring:
+  flyway:
+    out-of-order: true
+```
+
+전제와 한계: 로컬 out-of-order는 적용 "순서"의 동일 재현을 보장하지 않는다 —
+**순서 의존 마이그레이션을 만들지 않는 것**이 전제다. 순서 의존이 생길 상황이면
+머지 전 타임스탬프 재넘버링으로 단조성을 유지한다(절차·체크리스트:
+docs/conventions/db-migration.md).
 
 ## 전제 (doctor가 경고로 알려준다)
 
