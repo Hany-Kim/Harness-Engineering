@@ -11,6 +11,9 @@
 - 저장소 지도: [docs/architecture/MAP.md](docs/architecture/MAP.md)
 - 레이어링·골든 원칙: [docs/architecture/principles.md](docs/architecture/principles.md)
 - 스택 레이아웃·규칙: [docs/architecture/stack.md](docs/architecture/stack.md)
+- 통합 참조값(Jira/Slack, 비밀 아님): `harness/integrations.env` · 사용 규약:
+  [docs/conventions/integrations.md](docs/conventions/integrations.md). 토큰은 저장소에
+  없다(MCP 설정에서 관리) — 참조값만 여기서 읽고, 빈 값이면 사람에게 확인한다.
 - 우선순위: 대화의 명시 요청 > 이 파일 > 팀 전역 컨벤션(`~/.claude/CLAUDE.md` ·
   `~/.codex/AGENTS.md`) > 프레임워크 관행. 단 보안 / 인증 / 결제 / DB / 배포 / secret /
   운영 데이터 / 파괴적 명령은 계층과 무관하게 항상 보수적으로 판단한다.
@@ -57,6 +60,7 @@ format / lint / typecheck / test(실제 명령은 `harness/gate.env`) · 문서 
 | 테스트 작성 | [docs/conventions/testing-conventions.md](docs/conventions/testing-conventions.md) |
 | 커밋 / PR | [docs/conventions/commit-and-pr.md](docs/conventions/commit-and-pr.md) |
 | DB 마이그레이션 | [docs/conventions/db-migration.md](docs/conventions/db-migration.md) |
+| 외부 통합 (Jira/Slack) | [docs/conventions/integrations.md](docs/conventions/integrations.md) |
 {{STACK_GUIDE_ROWS}}
 
 4. **상시 규칙**: 주석은 한국어, WHY만. 에러는 공용 예외/에러 계층으로. 새 client /

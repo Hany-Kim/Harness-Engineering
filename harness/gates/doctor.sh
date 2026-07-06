@@ -28,7 +28,7 @@ for f in AGENTS.md CLAUDE.md .claude/settings.json .codex/config.toml docs/plans
 done
 
 # 2) 잔여 템플릿 변수 — 렌더링이 끝나지 않은 계약은 존재해서는 안 된다
-for f in AGENTS.md CLAUDE.md harness/gate.env; do
+for f in AGENTS.md CLAUDE.md harness/gate.env harness/integrations.env; do
   [ -f "$f" ] || continue
   if grep -Eq '\{\{[A-Z_]+\}\}' "$f"; then
     err "잔여 템플릿 변수({{...}}): $f — init.sh 렌더링이 완료되지 않았다"
@@ -67,6 +67,12 @@ if [ -f harness/gate.env ]; then
   done
 elif [ "$DEV" = 0 ]; then
   err "harness/gate.env 없음 — 스택 검증 명령이 설치되지 않았다 (init.sh 재실행)"
+fi
+
+# 5b) 통합 참조값 파일 (설치본에만 — init이 항상 설치한다)
+if [ "$DEV" = 0 ]; then
+  if [ -f harness/integrations.env ]; then ok "harness/integrations.env"
+  else warn "harness/integrations.env 없음 — init.sh 재실행 또는 kit/contract/integrations.env.tmpl에서 복사"; fi
 fi
 
 # 6) 설치 매니페스트 (설치본에만 요구 — upgrade의 전제)

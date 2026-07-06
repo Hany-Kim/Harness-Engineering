@@ -119,6 +119,8 @@ def add_tree(src_dir, dst_prefix):
 # 계약
 add("AGENTS.md", (root / "kit/contract/AGENTS.md.tmpl").read_text())
 add("CLAUDE.md", (root / "kit/contract/CLAUDE.md.tmpl").read_text())
+# 통합 참조값(비밀 아님) — 프로젝트가 값을 채운다. 토큰은 여기 두지 않는다.
+add("harness/integrations.env", (root / "kit/contract/integrations.env.tmpl").read_text())
 
 # 렌더 산출물 (하네스 저장소의 관리 디렉터리에서 그대로)
 for d in [".claude/agents", ".claude/commands", ".claude/skills", ".codex/agents",
