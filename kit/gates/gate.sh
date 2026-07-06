@@ -33,6 +33,8 @@ PROTECTED="${GATE_PROTECTED_BRANCHES:-main master develop}"
 DEFAULT_BRANCH="${GATE_DEFAULT_BRANCH:-main}"
 # claude/, codex/는 에이전트 워크트리 브랜치 — 게이트가 에이전트 자신의 작업을 막지 않도록 허용
 BRANCH_REGEX="${GATE_BRANCH_REGEX:-^(feature|bugfix|hotfix|release|chore|claude|codex)/([A-Z][A-Z0-9]+-[0-9]+-)?[A-Za-z0-9._-]+$}"
+# 소스 루트는 스택마다 다르다 (react/spring: src/, fastapi: app/) — gate.env가 정의
+SRC_PATTERN="${GATE_SRC_PATTERN:-^src/}"
 
 is_protected() { local b; for b in $PROTECTED; do [ "$1" = "$b" ] && return 0; done; return 1; }
 
@@ -56,7 +58,7 @@ fi
 
 fm_field() { awk -v key="$2" '/^---$/{c++;next} c==1 && $0 ~ "^"key":"{sub("^"key":[ ]*","");print;exit} c>=2{exit}' "$1"; }
 
-if printf '%s\n' "$CHANGED" | grep -q '^src/'; then
+if printf '%s\n' "$CHANGED" | grep -Eq "$SRC_PATTERN"; then
   has_plan=0
   for f in docs/plans/*.md; do
     [ -e "$f" ] || continue
@@ -67,7 +69,7 @@ if printf '%s\n' "$CHANGED" | grep -q '^src/'; then
     fi
   done
   if [ "$has_plan" = 0 ]; then
-    fail "src/ 변경에는 현재 브랜치용 계획이 필요하다 — docs/plans/*.md frontmatter에 branch: $BRANCH, status: approved 인 계획을 만들 것 (/plan 후 사람 승인)"
+    fail "소스($SRC_PATTERN) 변경에는 현재 브랜치용 계획이 필요하다 — docs/plans/*.md frontmatter에 branch: $BRANCH, status: approved 인 계획을 만들 것 (/plan 후 사람 승인)"
   fi
 fi
 
