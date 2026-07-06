@@ -19,19 +19,26 @@ except Exception:
 ' 2>/dev/null)
 [ -n "$FILE" ] || exit 0
 
-# src/ 바깥(문서, 설정, 계획)은 이 가드의 대상이 아니다.
+# 소스 루트 바깥(문서, 설정, 계획)은 이 가드의 대상이 아니다.
+# 소스 루트 패턴/보호 브랜치는 스택 팩의 gate.env가 정의한다.
+SRC_PATTERN="^src/"
+PROTECTED="main master develop"
+if [ -f "$ROOT/harness/gate.env" ]; then
+  # shellcheck disable=SC1091
+  . "$ROOT/harness/gate.env"
+  SRC_PATTERN="${GATE_SRC_PATTERN:-$SRC_PATTERN}"
+  PROTECTED="${GATE_PROTECTED_BRANCHES:-$PROTECTED}"
+fi
 REL="${FILE#"$ROOT"/}"
-case "$REL" in
-  src/*) ;;
-  *) exit 0 ;;
-esac
+printf '%s' "$REL" | grep -Eq "$SRC_PATTERN" || exit 0
 
 BRANCH=$(git -C "$ROOT" symbolic-ref --short HEAD 2>/dev/null || echo "")
-case "$BRANCH" in
-  main|master|develop)
-    echo "[harness] 차단: 보호 브랜치($BRANCH)에서 src/ 편집 금지. AGENTS.md Stage 0에 따라 작업 브랜치를 먼저 만들 것." >&2
-    exit 2 ;;
-esac
+for p in $PROTECTED; do
+  if [ "$BRANCH" = "$p" ]; then
+    echo "[harness] 차단: 보호 브랜치($BRANCH)에서 소스 편집 금지. AGENTS.md Stage 0에 따라 작업 브랜치를 먼저 만들 것." >&2
+    exit 2
+  fi
+done
 
 # 소프트 계층: 계획 부재는 경고만 — 커밋 게이트가 최종 차단한다.
 fm_field() { awk -v key="$2" '/^---$/{c++;next} c==1 && $0 ~ "^"key":"{sub("^"key":[ ]*","");print;exit} c>=2{exit}' "$1"; }
