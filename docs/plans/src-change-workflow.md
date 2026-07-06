@@ -1,4 +1,15 @@
+---
+slug: src-change-workflow
+status: verified
+branch: none
+ticket: none
+updated: 2026-07-06
+---
+
 # Plan: src/ change workflow rules
+
+> v1 설계 — 완료·머지됨. 워크플로 강제는 v2에서 게이트/훅으로 기계화됨
+> (docs/plans/harness-v2-redesign.md 참고).
 
 - **Status:** done
 - **Owner / driver:** 김주한 (rule author) + Claude
