@@ -1,9 +1,9 @@
 ---
 slug: harness-v2-redesign
-status: executing
+status: verified
 branch: claude/priceless-turing-cbdd4f
 ticket: none
-updated: 2026-07-06
+updated: 2026-07-07
 ---
 
 # Plan: 하네스 v2 전면 재설계 — 이식 가능하고 기계적으로 강제되는 하네스
